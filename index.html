@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>India Heart Age Calculator — Mobile Optimized</title>
+  <style>
+    :root{--bg:#fbfdff;--card:#ffffff;--muted:#62748a;--accent:#0b74da;--success:#10b981;--radius:12px;--pad:14px;--maxwidth:720px}
+    html,body{height:100%;margin:0}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:var(--bg);-webkit-font-smoothing:antialiased}
+    .wrap{max-width:var(--maxwidth);margin:0 auto;padding:18px}
+    header{display:flex;align-items:center;gap:12px}h1{font-size:1.1rem;margin:0}p.lead{margin:6px 0 14px;color:var(--muted);font-size:0.95rem}
+    .card{background:var(--card);border-radius:var(--radius);padding:var(--pad);box-shadow:0 6px 18px rgba(12,15,25,0.06);margin-bottom:14px}
+    .field{display:flex;flex-direction:column;margin-bottom:10px}label{font-size:0.95rem;color:#10203a;margin-bottom:6px}
+    input[type="number"],select,input[type="text"]{padding:12px 10px;border-radius:10px;border:1px solid #e6edf3;font-size:1rem}
+    .row{display:flex;gap:10px;flex-wrap:wrap}.col{flex:1;min-width:140px}.muted{color:var(--muted);font-size:0.88rem}
+    button.primary{width:100%;padding:12px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:1rem}
+    button.secondary{width:48%;padding:10px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:var(--accent);font-weight:600}
+    .result{padding:12px;border-radius:10px;background:#f6f8fb;border:1px solid #e6eef8;margin-top:10px}.small{font-size:0.9rem;color:var(--muted)}
+    footer{padding:12px 0;text-align:center;color:var(--muted);font-size:0.85rem}
+    @media (max-width:420px){.wrap{padding:12px}input[type="number"],select{padding:14px}button.primary{padding:14px;font-size:1.05rem}.row{gap:8px}}
+    @media (min-width:721px){.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header><h1>India Heart Age Calculator</h1></header>
+    <p class="lead">Mobile-optimized, India-adapted non-lab &amp; lab versions. Enter values and tap <strong>Calculate</strong>.</p>
+
+    <div class="card" id="inputsCard">
+      <div class="field">
+        <label for="sex">Sex</label>
+        <select id="sex"><option value="male">Male</option><option value="female">Female</option></select>
+      </div>
+
+      <div class="row">
+        <div class="field col"><label for="age">Chronological age (years)</label><input id="age" type="number" min="20" max="120" value="45" /></div>
+        <div class="field col"><label for="sbp">Systolic BP (mm Hg)</label><input id="sbp" type="number" min="70" max="260" value="130" /></div>
+      </div>
+
+      <div class="row">
+        <div class="field col"><label for="treated">On BP treatment?</label><select id="treated"><option value="no">No</option><option value="yes">Yes</option></select></div>
+        <div class="field col"><label for="diabetes">Diabetes?</label><select id="diabetes"><option value="no">No</option><option value="yes">Yes</option></select></div>
+      </div>
+
+      <div class="row">
+        <div class="field col"><label for="smoke">Smoking status</label><select id="smoke"><option value="no">Non-smoker</option><option value="yes">Current smoker</option><option value="former">Former smoker (&lt;5 yrs)</option></select></div>
+        <div class="field col"><label for="waistOrBmi">Use Waist or BMI?</label><select id="waistOrBmi"><option value="waist">Waist (cm)</option><option value="bmi">BMI (kg/m²)</option></select></div>
+      </div>
+
+      <div id="waistInput" class="row"><div class="field col"><label for="waist">Waist circumference (cm)</label><input id="waist" type="number" min="50" max="180" value="92" /><div class="small">Indian cut-offs: men ≥90 cm, women ≥80 cm</div></div></div>
+
+      <div id="bmiInput" style="display:none" class="row"><div class="field col"><label for="bmi">BMI (kg/m²)</label><input id="bmi" type="number" step="0.1" min="10" max="60" value="24" /><div class="small">If unknown, enter measured BMI; weight &amp; height calculators not included to keep mobile UI simple.</div></div></div>
+
+      <hr style="border:none;height:1px;background:#eef3fb;margin:12px 0" />
+
+      <div class="small">Optional: Lab values for lab-based estimate</div>
+      <div class="row" style="margin-top:8px">
+        <div class="field col"><label for="tc">Total Cholesterol (mg/dL)</label><input id="tc" type="number" min="80" max="400" placeholder="e.g. 190" /></div>
+        <div class="field col"><label for="hdl">HDL (mg/dL)</label><input id="hdl" type="number" min="10" max="120" placeholder="e.g. 45" /></div>
+      </div>
+
+      <div style="margin-top:12px" class="row"><button class="primary" id="calculateBtn">Calculate Heart Age</button></div>
+
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="secondary" id="shareBtn">Share</button><button class="secondary" id="downloadBtn">Download HTML</button></div>
+    </div>
+
+    <div id="outCard" class="card" style="display:none"><div id="out" class="result" aria-live="polite"></div></div>
+    <footer>Note: Educational screening tool — not a clinical diagnostic. Validate before use in trials.</footer>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const waistOrBmi = $('waistOrBmi');
+    const waistInput = $('waistInput'), bmiInput = $('bmiInput');
+    waistOrBmi.addEventListener('change', ()=>{ if(waistOrBmi.value==='waist'){ waistInput.style.display='flex'; bmiInput.style.display='none'; } else{ waistInput.style.display='none'; bmiInput.style.display='flex'; } });
+
+    function pointsForAge(age, sex){ age = Number(age); if(sex==='male'){ if(age<40) return 0; if(age<50) return 4; if(age<60) return 7; if(age<70) return 10; return 12; } else { if(age<40) return 0; if(age<50) return 3; if(age<60) return 6; if(age<70) return 8; return 10; } }
+    function pointsForSBP(sbp, treated){ sbp=Number(sbp); if(sbp<120) return 0; if(sbp<140) return 2; if(sbp<160) return 4; return 6; }
+    function pointsForSmoking(s){ return s==='yes'?4:(s==='former'?2:0); }
+    function pointsForDiabetes(d){ return d==='yes'?6:0; }
+    function pointsForWaistOrBmi(waist,bmi,sex,useBmi){ if(useBmi){ bmi=Number(bmi); if(isNaN(bmi)) return 0; if(bmi<23) return 0; if(bmi<27.5) return 2; return 4;} else{ waist=Number(waist); const cutoff = sex==='male'?90:80; if(isNaN(waist)) return 0; if(waist<cutoff) return 0; if(waist<cutoff+10) return 2; return 4; } }
+    function pointsForTC(tc){ if(!tc) return 0; tc=Number(tc); if(tc<160) return 0; if(tc<200) return 1; if(tc<240) return 2; if(tc<280) return 3; return 4; }
+    function pointsForHDL(hdl){ if(!hdl) return 0; hdl=Number(hdl); if(hdl>=60) return -1; if(hdl>=50) return 0; if(hdl>=40) return 1; return 2; }
+
+    function convertPointsToHeartAge(points){ points=Number(points); if(points<=4) return {age:33,range:'30–35'}; if(points<=9) return {age:45,range:'35–45'}; if(points<=14) return {age:55,range:'45–55'}; if(points<=19) return {age:63,range:'55–63'}; if(points<=24) return {age:73,range:'63–73'}; return {age:78,range:'>73'} }
+
+    function calculate(){ const sex = $('sex').value; const age = Number($('age').value)||0; const sbp = Number($('sbp').value)||0; const treated = $('treated').value==='yes'; const diabetes = $('diabetes').value; const smoke = $('smoke').value; const useBmi = $('waistOrBmi').value==='bmi'; const waist = Number($('waist').value)||0; const bmi = Number($('bmi').value)||0; const tc = $('tc').value; const hdl = $('hdl').value; const p_age = pointsForAge(age,sex); const p_sbp = pointsForSBP(sbp, treated); const p_smoke = pointsForSmoking(smoke); const p_diab = pointsForDiabetes(diabetes); const p_wc = pointsForWaistOrBmi(waist,bmi,sex,useBmi); const nonLabTotal = p_age + p_sbp + p_smoke + p_diab + p_wc; const p_tc = pointsForTC(tc); const p_hdl = pointsForHDL(hdl); const labTotal = nonLabTotal + p_tc + p_hdl; const nonLabHeart = convertPointsToHeartAge(nonLabTotal); const labHeart = convertPointsToHeartAge(labTotal); const outCard = $('outCard'); outCard.style.display='block'; const out = $('out'); out.innerHTML = `<strong>Results</strong><div class="small">Non-lab total points: <strong>${nonLabTotal}</strong></div><div class="small">Estimated Heart age (non-lab): <strong>${nonLabHeart.age} yrs</strong> (range ${nonLabHeart.range})</div><div class="small" style="margin-top:8px">Lab-based total points: <strong>${labTotal}</strong></div><div class="small">Estimated Heart age (lab): <strong>${labHeart.age} yrs</strong> (range ${labHeart.range})</div><hr style="border:none;height:1px;background:#eef3fb;margin:10px 0" /><div class="small">Chronological age: <strong>${age} yrs</strong></div><div class="small">Heart Age gap (non-lab): <strong>${nonLabHeart.age - age >=0? '+'+(nonLabHeart.age-age): (nonLabHeart.age-age)}</strong> yrs</div><div style="margin-top:8px" class="small">Interpretation: <em>${nonLabHeart.age > age ? 'Heart age older than chronological age — consider lifestyle change and clinical evaluation.' : 'Heart age similar or lower — continue healthy lifestyle.'}</em></div><div class="small" style="margin-top:8px;color:var(--muted)">This tool is for screening and education only. For clinical decisions use validated risk calculators and consult a clinician.</div>`; try{ if(navigator.vibrate) navigator.vibrate(40); }catch(e){} }
+    $('calculateBtn').addEventListener('click', calculate);
+    $('shareBtn').addEventListener('click', ()=>{ const text = 'India Heart Age Calculator — try this screening tool.'; if(navigator.share){ navigator.share({title:'Heart Age Calculator',text}); } else { alert('Share from your browser or copy the link to share.'); } });
+    $('downloadBtn').addEventListener('click', ()=>{ const html = '<!doctype html>' + document.documentElement.outerHTML; const blob = new Blob([html],{type:'text/html'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='india-heart-age-calculator-mobile.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+  </script>
+</body>
+</html>
